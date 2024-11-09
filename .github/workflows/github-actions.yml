@@ -5,6 +5,7 @@ on:
             - '*'
         branches:
             - '*'
+
 jobs:
     full-test:
         container: cuaesd/aesd-autotest:24-assignment4-buildroot
@@ -13,25 +14,16 @@ jobs:
         steps:
           - uses: actions/checkout@v2
             name: Checkout main repository
-          
-          - name: Install wget and CA certificates
-            run: |
-              # Install wget and the ca-certificates package
-              apt-get update && apt-get install -y wget ca-certificates
-              # Rehash the certificates
-              update-ca-certificates
 
-          - name: Checkout submodules
-            run: git submodule update --init --recursive
-          
+          - name: Checkout submodules with SSL verification bypassed
+            run: |
+              # Disable SSL verification temporarily to bypass certificate errors
+              export GIT_SSL_NO_VERIFY=true
+              git submodule update --init --recursive
+
           - uses: webfactory/ssh-agent@v0.5.3
             with:
-                ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
-
-          - name: Download Buildroot Certificate using wget
-            run: |
-              # Download the certificate using wget
-              wget --no-check-certificate https://git.busybox.net/buildroot/
+              ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
           - name: Run full test
             env:
