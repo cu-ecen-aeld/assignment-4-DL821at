@@ -12,6 +12,14 @@ jobs:
         timeout-minutes: 120
         steps:
           - uses: actions/checkout@v2
+            name: Checkout main repository
+          - name: Install CA certificates and update
+            run: |
+              # Install the ca-certificates package and update the CA store
+              apt-get update && apt-get install -y ca-certificates
+              # Download and add the required certificate (replace with the correct URL)
+              curl -fsSL https://git.busybox.net/buildroot/ca.crt -o /usr/local/share/ca-certificates/busybox.crt
+              update-ca-certificates
           - name: Checkout submodules
             run: git submodule update --init --recursive
           - uses: webfactory/ssh-agent@v0.5.3
