@@ -13,6 +13,7 @@ jobs:
         steps:
           - uses: actions/checkout@v2
             name: Checkout main repository
+          
           - name: Install CA certificates and update
             run: |
               # Install the ca-certificates package and update the CA store
@@ -20,16 +21,22 @@ jobs:
               # Download and add the required certificate (replace with the correct URL)
               curl -fsSL https://git.busybox.net/buildroot/ca.crt -o /usr/local/share/ca-certificates/busybox.crt
               update-ca-certificates
+
           - name: Checkout submodules
             run: git submodule update --init --recursive
+          
           - uses: webfactory/ssh-agent@v0.5.3
             with:
                 ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
           - name: Run full test
             env:
               GIT_SSH_COMMAND: "ssh -o StrictHostKeyChecking=no"
             run: ./full-test.sh
+
           - name: Cleanup
             if: always()
             run: |
-              ssh-add -D
+              # Ensure SSH agent is running and then remove all identities
+              eval $(ssh-agent -s)  # Start the SSH agent if it's not already running
+              ssh-add -D  # Remove all identities from the SSH agent
